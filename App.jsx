@@ -75,6 +75,17 @@ function buildSeedData() {
       u.number = num;
       u.location = group.location;
       u.status = GREEN_UNITS.has(num) ? "available" : "rented";
+      // Apply default enrichment data so make/year/serial/plate/cviExpiry are pre-populated
+      const key = ENRICHMENT_DATA[num] ? num : num.replace(/[LR]$/, "");
+      const info = ENRICHMENT_DATA[key];
+      if (info) {
+        if (info.make) u.make = info.make;
+        if (info.year) u.year = info.year;
+        if (info.serial) u.serial = info.serial;
+        if (info.plate) u.plate = info.plate;
+        if (info.cviExpiry) u.cviExpiry = info.cviExpiry;
+        if (info.model) u.model = info.model;
+      }
       units.push(u);
     });
   });
@@ -161,7 +172,30 @@ export default function FleetBoard() {
         const res = await window.storage.get(STORAGE_KEY, SHARED);
         if (cancelled) return;
         if (res && res.value) {
-          setData(JSON.parse(res.value));
+          const loaded = JSON.parse(res.value);
+          // Back-fill any blank enrichment fields from ENRICHMENT_DATA
+          // so existing saved boards get make/year/serial/plate/cviExpiry without user action
+          const merged = {
+            ...loaded,
+            units: loaded.units.map((u) => {
+              const key = ENRICHMENT_DATA[u.number] ? u.number : u.number.replace(/[LR]$/, "");
+              const info = ENRICHMENT_DATA[key];
+              if (!info) return u;
+              const result = {
+                ...u,
+                make: u.make || info.make || "",
+                year: u.year || info.year || "",
+                serial: u.serial || info.serial || "",
+                plate: u.plate || info.plate || "",
+                cviExpiry: u.cviExpiry || info.cviExpiry || "",
+                model: u.model || info.model || "",
+              };
+              console.log("[v0] unit", u.number, "raw make:", JSON.stringify(u.make), "info make:", JSON.stringify(info.make), "result make:", JSON.stringify(result.make));
+              return result;
+            }),
+          };
+          console.log("[v0] total units loaded:", merged.units.length);
+          setData(merged);
         } else {
           setData(buildSeedData());
         }
@@ -265,11 +299,11 @@ export default function FleetBoard() {
       matched++;
       return {
         ...u,
-        make: info.make || u.make,
-        year: info.year || u.year,
-        serial: info.serial || u.serial,
-        plate: info.plate || u.plate,
-        cviExpiry: info.cviExpiry || u.cviExpiry,
+        make: u.make || info.make || "",
+        year: u.year || info.year || "",
+        serial: u.serial || info.serial || "",
+        plate: u.plate || info.plate || "",
+        cviExpiry: u.cviExpiry || info.cviExpiry || "",
       };
     });
     persist({ ...data, units });
