@@ -172,7 +172,27 @@ export default function FleetBoard() {
         const res = await window.storage.get(STORAGE_KEY, SHARED);
         if (cancelled) return;
         if (res && res.value) {
-          setData(JSON.parse(res.value));
+          const loaded = JSON.parse(res.value);
+          // Back-fill any blank enrichment fields from ENRICHMENT_DATA
+          // so existing saved boards get make/year/serial/plate/cviExpiry without user action
+          const merged = {
+            ...loaded,
+            units: loaded.units.map((u) => {
+              const key = ENRICHMENT_DATA[u.number] ? u.number : u.number.replace(/[LR]$/, "");
+              const info = ENRICHMENT_DATA[key];
+              if (!info) return u;
+              return {
+                ...u,
+                make: u.make || info.make || "",
+                year: u.year || info.year || "",
+                serial: u.serial || info.serial || "",
+                plate: u.plate || info.plate || "",
+                cviExpiry: u.cviExpiry || info.cviExpiry || "",
+                model: u.model || info.model || "",
+              };
+            }),
+          };
+          setData(merged);
         } else {
           setData(buildSeedData());
         }
