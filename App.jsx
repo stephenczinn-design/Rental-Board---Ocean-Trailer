@@ -75,6 +75,17 @@ function buildSeedData() {
       u.number = num;
       u.location = group.location;
       u.status = GREEN_UNITS.has(num) ? "available" : "rented";
+      // Apply default enrichment data so make/year/serial/plate/cviExpiry are pre-populated
+      const key = ENRICHMENT_DATA[num] ? num : num.replace(/[LR]$/, "");
+      const info = ENRICHMENT_DATA[key];
+      if (info) {
+        if (info.make) u.make = info.make;
+        if (info.year) u.year = info.year;
+        if (info.serial) u.serial = info.serial;
+        if (info.plate) u.plate = info.plate;
+        if (info.cviExpiry) u.cviExpiry = info.cviExpiry;
+        if (info.model) u.model = info.model;
+      }
       units.push(u);
     });
   });
@@ -265,11 +276,11 @@ export default function FleetBoard() {
       matched++;
       return {
         ...u,
-        make: info.make || u.make,
-        year: info.year || u.year,
-        serial: info.serial || u.serial,
-        plate: info.plate || u.plate,
-        cviExpiry: info.cviExpiry || u.cviExpiry,
+        make: u.make || info.make || "",
+        year: u.year || info.year || "",
+        serial: u.serial || info.serial || "",
+        plate: u.plate || info.plate || "",
+        cviExpiry: u.cviExpiry || info.cviExpiry || "",
       };
     });
     persist({ ...data, units });
