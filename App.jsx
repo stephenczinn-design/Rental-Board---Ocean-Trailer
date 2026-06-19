@@ -181,7 +181,7 @@ export default function FleetBoard() {
               const key = ENRICHMENT_DATA[u.number] ? u.number : u.number.replace(/[LR]$/, "");
               const info = ENRICHMENT_DATA[key];
               if (!info) return u;
-              return {
+              const result = {
                 ...u,
                 make: u.make || info.make || "",
                 year: u.year || info.year || "",
@@ -190,8 +190,11 @@ export default function FleetBoard() {
                 cviExpiry: u.cviExpiry || info.cviExpiry || "",
                 model: u.model || info.model || "",
               };
+              console.log("[v0] unit", u.number, "raw make:", JSON.stringify(u.make), "info make:", JSON.stringify(info.make), "result make:", JSON.stringify(result.make));
+              return result;
             }),
           };
+          console.log("[v0] total units loaded:", merged.units.length);
           setData(merged);
         } else {
           setData(buildSeedData());
