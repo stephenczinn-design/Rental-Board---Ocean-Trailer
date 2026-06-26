@@ -143,7 +143,7 @@ export default function FleetBoard() {
   const [error,setError]=useState(null);
   const [search,setSearch]=useState("");
   const [activeYard,setActiveYard]=useState("Mission");
-  const [viewMode,setViewMode]=useState("rented");
+  const [viewMode,setViewMode]=useState("all");
   const [alertFilter,setAlertFilter]=useState(null);
   const [selectedUnitId,setSelectedUnitId]=useState(null);
   const [showAddCategory,setShowAddCategory]=useState(false);
